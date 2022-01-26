@@ -1,0 +1,94 @@
+From 3405e595b501725cd6461a47cd82aa21cbeec1a0 Mon Sep 17 00:00:00 2001
+From: Ganesh Maharaj Mahalingam <ganesh.mahalingam@intel.com>
+Date: Wed, 26 Jan 2022 13:33:38 -0800
+Subject: [PATCH 1/2] add absolute path of binary
+
+Signed-off-by: Ganesh Maharaj Mahalingam <ganesh.mahalingam@intel.com>
+---
+ tests/test-slirp4netns-api-socket.sh            | 4 ++--
+ tests/test-slirp4netns-disable-dns.sh           | 4 ++--
+ tests/test-slirp4netns-disable-host-loopback.sh | 2 +-
+ tests/test-slirp4netns-outbound-addr.sh         | 4 ++--
+ 4 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/tests/test-slirp4netns-api-socket.sh b/tests/test-slirp4netns-api-socket.sh
+index ce01bc3..a93ab30 100755
+--- a/tests/test-slirp4netns-api-socket.sh
++++ b/tests/test-slirp4netns-api-socket.sh
+@@ -12,14 +12,14 @@ tmpdir=$(mktemp -d /tmp/slirp4netns-bench.XXXXXXXXXX)
+ apisocket=${tmpdir}/slirp4netns.sock
+ apisocketlongpath=${tmpdir}/slirp4netns-TOO-LONG-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.sock
+ 
+-if slirp4netns -c $child --api-socket $apisocketlongpath tap11; then
++if $(dirname $0)/../slirp4netns -c $child --api-socket $apisocketlongpath tap11; then
+ 	echo "expected failure with apisocket path too long" >&2
+ 	kill -9 $child
+ 	rm -rf $tmpdir
+ 	exit 1
+ fi
+ 
+-slirp4netns -c $child --api-socket $apisocket tap11 &
++$(dirname $0)/../slirp4netns -c $child --api-socket $apisocket tap11 &
+ slirp_pid=$!
+ 
+ wait_for_network_device $child tap11
+diff --git a/tests/test-slirp4netns-disable-dns.sh b/tests/test-slirp4netns-disable-dns.sh
+index 561dcef..6392418 100755
+--- a/tests/test-slirp4netns-disable-dns.sh
++++ b/tests/test-slirp4netns-disable-dns.sh
+@@ -3,7 +3,7 @@ set -xeuo pipefail
+ 
+ . $(dirname $0)/common.sh
+ 
+-SLIRP_CONFIG_VERSION_MAX=$(slirp4netns -v | grep "SLIRP_CONFIG_VERSION_MAX: " | sed 's#SLIRP_CONFIG_VERSION_MAX: \(\)##')
++SLIRP_CONFIG_VERSION_MAX=$($(dirname $0)/../slirp4netns -v | grep "SLIRP_CONFIG_VERSION_MAX: " | sed 's#SLIRP_CONFIG_VERSION_MAX: \(\)##')
+ 
+ if [ "${SLIRP_CONFIG_VERSION_MAX:-0}" -lt 3 ]; then
+ 	printf "'--disable-dns' requires SLIRP_CONFIG_VERSION_MAX 3 or newer. Test skipped..."
+@@ -17,7 +17,7 @@ child=$!
+ wait_for_network_namespace $child
+ 
+ mtu=${MTU:=1500}
+-slirp4netns -c --mtu $mtu --disable-dns $child tap11 &
++$(dirname $0)/../slirp4netns -c --mtu $mtu --disable-dns $child tap11 &
+ slirp_pid=$!
+ 
+ wait_for_network_device $child tap11
+diff --git a/tests/test-slirp4netns-disable-host-loopback.sh b/tests/test-slirp4netns-disable-host-loopback.sh
+index 12da2ff..805c62d 100755
+--- a/tests/test-slirp4netns-disable-host-loopback.sh
++++ b/tests/test-slirp4netns-disable-host-loopback.sh
+@@ -13,7 +13,7 @@ child=$!
+ wait_for_network_namespace $child
+ 
+ mtu=${MTU:=1500}
+-slirp4netns -c --mtu $mtu --disable-host-loopback $child tap11 &
++$(dirname $0)/../slirp4netns -c --mtu $mtu --disable-host-loopback $child tap11 &
+ slirp_pid=$!
+ 
+ wait_for_network_device $child tap11
+diff --git a/tests/test-slirp4netns-outbound-addr.sh b/tests/test-slirp4netns-outbound-addr.sh
+index 4ed2ee4..e619ad1 100755
+--- a/tests/test-slirp4netns-outbound-addr.sh
++++ b/tests/test-slirp4netns-outbound-addr.sh
+@@ -3,7 +3,7 @@ set -xeuo pipefail
+ 
+ . $(dirname $0)/common.sh
+ 
+-SLIRP_CONFIG_VERSION_MAX=$(slirp4netns -v | grep "SLIRP_CONFIG_VERSION_MAX: " | sed 's#SLIRP_CONFIG_VERSION_MAX: \(\)##')
++SLIRP_CONFIG_VERSION_MAX=$($(dirname $0)/../slirp4netns -v | grep "SLIRP_CONFIG_VERSION_MAX: " | sed 's#SLIRP_CONFIG_VERSION_MAX: \(\)##')
+ 
+ if [ "${SLIRP_CONFIG_VERSION_MAX:-0}" -lt 2 ]; then
+ 	printf "'--disable-dns' requires SLIRP_CONFIG_VERSION_MAX 2 or newer. Test skipped..."
+@@ -36,7 +36,7 @@ for ip in "${IPs[@]}"; do
+ 
+ 	wait_for_network_namespace $child
+ 
+-	slirp4netns -c --mtu $mtu --outbound-addr="$ip" $child tap11 &
++	$(dirname $0)/../slirp4netns -c --mtu $mtu --outbound-addr="$ip" $child tap11 &
+ 	slirp_pid=$!
+ 
+ 	wait_for_network_device $child tap11
+-- 
+2.35.0
+
